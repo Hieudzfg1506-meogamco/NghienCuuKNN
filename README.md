@@ -1,80 +1,89 @@
-# Ứng dụng phân loại KNN – Breast Cancer Wisconsin
+# Hỗ trợ sàng lọc ung thư vú bằng KNN – Breast Cancer Wisconsin
 
-Ứng dụng desktop nhỏ bằng Python/Tkinter, dùng dữ liệu thật trong `archive.zip` (tệp `data.csv`). Chương trình đọc và kiểm tra dữ liệu, huấn luyện K-Nearest Neighbors, tìm tham số bằng kiểm định chéo, đánh giá tập test, phân tích các mẫu dự đoán sai và xuất báo cáo.
+Ứng dụng web chạy cục bộ bằng Python và Streamlit, dùng dữ liệu thật trong `archive.zip` (tệp `data.csv`). Chương trình đọc và kiểm tra dữ liệu, huấn luyện K-Nearest Neighbors, tìm tham số bằng kiểm định chéo, đánh giá trên tập test, và có giao diện cho bác sĩ nhập ca mới để nhận kết quả tham khảo.
 
-> Kết quả của chương trình chỉ phục vụ học tập về học máy, không phải chẩn đoán y khoa.
+> Kết quả của chương trình chỉ phục vụ học tập và nghiên cứu về học máy, **không phải chẩn đoán y khoa** và chưa được kiểm định lâm sàng.
+
+## Chức năng
+
+| Trang | Nội dung |
+|---|---|
+| Chẩn đoán ca mới | Nhập thông tin bệnh nhân và 30 chỉ số tế bào học (có chú thích từng chỉ số), nhận cảnh báo kèm số láng giềng ác tính, mức đồng thuận, bảng các ca tương tự, biểu đồ vị trí (chọn 2 chỉ số hoặc PCA) và so sánh từng chỉ số |
+| Dự đoán hàng loạt | Tải CSV nhiều ca, nhận bảng kết quả và tải về |
+| Lịch sử ca khám | Lưu, tìm kiếm, xuất CSV và xoá các ca (lưu cục bộ bằng SQLite) |
+| Đánh giá thuật toán | Recall, Precision, Specificity, Accuracy, F1, AUC; ma trận nhầm lẫn; phân bố tỉ lệ phiếu; phân tán 2 chỉ số; ROC và Precision–Recall; ảnh hưởng của ngưỡng cảnh báo; chọn K bằng kiểm định chéo; mức quan trọng của chỉ số; danh sách ca dự đoán sai |
+| Từ điển thuật ngữ | Giải thích 30 chỉ số và các thuật ngữ tiếng Anh dùng trong phần mềm |
+
+Thanh bên cho chọn K, khoảng cách, cách bỏ phiếu, bật GridSearch (các ô tự hiển thị tham số tìm được) và chỉnh **ngưỡng cảnh báo ác tính**.
 
 ## Yêu cầu
 
-- Windows và Python 3.10 trở lên (bản Python có Tkinter).
-- Các thư viện trong `requirements.txt`.
+- Windows và Python 3.10 trở lên.
+- Các thư viện trong `requirements.txt`: numpy, pandas, scikit-learn, matplotlib, streamlit, plotly. Không cần Tkinter.
 
 ## Cài đặt và chạy
 
-Môi trường `.venv` đã được tạo tại thư mục dự án. **Nhấp đúp `run_app.bat` để mở ứng dụng**. Tệp này tự chuyển đến thư mục chương trình, dùng Python trong `.venv` và giữ cửa sổ thông báo nếu ứng dụng gặp lỗi. Không cần kích hoạt môi trường hoặc thay đổi PATH.
+**Cách nhanh:** nhấp đúp `run_app.bat`. Lần đầu tệp này tự tạo `.venv`, cài thư viện, rồi chạy `streamlit run app.py`; các lần sau chạy thẳng. Trình duyệt tự mở `http://localhost:8501`.
 
-Để chạy từ PowerShell tại thư mục dự án:
-
-```powershell
-.\.venv\Scripts\python.exe -E main.py
-```
-
-Khi tạo lại môi trường (hoặc chép dự án sang máy khác), dùng một bản Python có Tkinter đã được kiểm tra. Trên máy hiện tại, Python 3.13.7 được launcher `py` nhận diện:
+**Cách thủ công** (PowerShell, tại thư mục dự án):
 
 ```powershell
 py -3.13 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m pip check
-.\.venv\Scripts\python.exe -c "import tkinter, matplotlib, pandas, sklearn; print('Import thành công')"
-.\.venv\Scripts\python.exe -E main.py
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 
-Luôn dùng `.venv\Scripts\python.exe -m pip` để cài thư viện và cùng Python đó để chạy chương trình. Tùy chọn `-E` khi khởi động bỏ qua biến môi trường `PYTHONHOME`/`PYTHONPATH` của tiến trình; không sửa các biến của Windows. `.venv` phụ thuộc bản Python dùng để tạo nó, nên không chép `.venv` giữa các máy.
+Ghi chú:
 
-### Kết quả kiểm tra môi trường ngày 09/10/2026
+- Lần đầu Streamlit có thể hỏi email, nhấn Enter để bỏ qua.
+- Không đóng cửa sổ dòng lệnh khi đang dùng app. Nếu mở nhiều lần, app có thể chạy ở các cổng 8502, 8503...; nên đóng các cửa sổ cũ.
+- `.venv` phụ thuộc bản Python dùng để tạo nó, không chép `.venv` giữa các máy.
+- Tuỳ chọn: tạo `.streamlit/config.toml` để đổi màu giao diện.
 
-- `python` trỏ tới bản cài Python 3.13.7 tại `%LOCALAPPDATA%\Programs\Python\Python313\python.exe`.
-- `pip` trên PATH thuộc bản Python 3.13; `py` là launcher trong `%LOCALAPPDATA%\Programs\Python\Launcher\py.exe` và nhận diện được Python 3.13 khi chạy ngoài sandbox.
-- `PYTHONHOME` và `PYTHONPATH` không được đặt ở phạm vi tiến trình, người dùng hoặc hệ thống.
-- Cảnh báo `Failed to find real location` và việc `py` không tìm thấy Python chỉ xuất hiện trong sandbox của phiên kiểm tra. Ngoài sandbox, bản cài Python hoạt động và tạo `.venv` kèm `pip` thành công; không cần Repair/cài lại hay sửa PATH hệ thống.
-- Lỗi thiếu `matplotlib` xảy ra vì thư viện chưa được cài vào môi trường dùng để chạy ứng dụng. Các thư viện được cài bằng chính Python của `.venv`.
-- Đã kiểm tra thành công: Tkinter 8.6, Matplotlib 3.11.2, pandas 2.3.3 và scikit-learn 1.9.1. `pip check` không phát hiện phụ thuộc bị lỗi; cả 3 kiểm thử trong `test_core.py` đều đạt.
-- Đã chạy `main.py` bằng `.venv`, xác nhận tải 569 mẫu/30 đặc trưng, tạo đủ 3 tab và 4 vùng biểu đồ. Đã mở cửa sổ ứng dụng qua `run_app.bat` và xác nhận tiến trình tiếp tục chạy. Launcher đã được kiểm tra trả mã lỗi 1 và dừng bằng `pause` khi thiếu `.venv`.
-- `run_app.bat` dùng UTF-8 và xuống dòng CRLF của Windows. Nếu chỉnh sửa tệp này, giữ định dạng xuống dòng CRLF để `cmd.exe` đọc đúng.
+### Dữ liệu huấn luyện
 
-Khi khởi động, ứng dụng tự đọc `archive.zip` cạnh `main.py`. Nút **Mở dữ liệu** cho phép chọn một ZIP hoặc CSV khác. ZIP phải chứa CSV (ưu tiên tên `data.csv`).
-
-## Cách sử dụng
-
-1. Ở tab **Dữ liệu**, xem báo cáo kiểm tra, bảng dữ liệu và thống kê 30 đặc trưng.
-2. Ở tab **Huấn luyện và đánh giá**, chọn K, khoảng cách và cách bỏ phiếu rồi nhấn **Chạy KNN**; hoặc nhấn **Tìm tham số phù hợp** để chạy GridSearchCV.
-3. Ở tab **Biểu đồ và dự đoán sai**, xem phân bố lớp, ma trận nhầm lẫn, kết quả CV, biểu đồ phân tán và chi tiết các láng giềng của mẫu sai.
-4. Nhấn **Xuất báo cáo**, chọn thư mục đích để lưu CSV, TXT và PNG.
+Đặt `archive.zip` (hoặc `data.csv`) cạnh `app.py`, hoặc tải lên ở ô "Dữ liệu huấn luyện" trên thanh bên. ZIP phải chứa CSV (ưu tiên tên `data.csv`).
 
 ## Quy trình mô hình
 
-- Mã hóa `B = 0`, `M = 1`; `M` là lớp dương khi ghi TP/TN/FP/FN.
-- Cột `id` chỉ dùng tra cứu, không đưa vào mô hình. `diagnosis` là nhãn. Cột hoàn toàn trống được loại và được nêu trong báo cáo.
+- Mã hoá B = 0, M = 1; M là lớp dương khi ghi TP/TN/FP/FN.
+- Cột `id` chỉ dùng tra cứu, không đưa vào mô hình. `diagnosis` là nhãn. Cột hoàn toàn trống bị loại và được nêu trong báo cáo kiểm tra dữ liệu.
 - Chia train/test 80/20 với `random_state=42`, `stratify=y`.
 - Pipeline: `SimpleImputer(median)` → `StandardScaler` → `KNeighborsClassifier`. Pipeline chỉ fit trên train nên không rò rỉ thống kê từ test.
-- GridSearchCV chạy trên train với StratifiedKFold 5 fold, thử K lẻ 1–31, Euclid/Manhattan và uniform/distance; tiêu chí là F1-macro.
+- GridSearchCV chạy trên train với `StratifiedKFold` 5 fold, thử K lẻ 1–31, Euclid/Manhattan và uniform/distance; tiêu chí là F1-macro.
+- Biểu đồ chọn K dùng kiểm định chéo 5 fold trên tập train, không dùng tập test.
+
+### Cách hiểu kết quả
+
+Giao diện không hiển thị "xác suất mắc bệnh". KNN chỉ cho biết trong K ca đã có chẩn đoán giống ca đang xét nhất có bao nhiêu ca ác tính (tỉ lệ phiếu). Phần mềm đưa ra **cảnh báo** khi tỉ lệ này đạt ngưỡng cảnh báo (mặc định 50%) và gắn nhãn mức đồng thuận: hoàn toàn, cao, hoặc ranh giới. Hạ ngưỡng làm tăng Recall (ít bỏ sót ca ác tính) nhưng làm tăng số ca báo nhầm. Các chỉ số ở trang Đánh giá được tính theo ngưỡng đang chọn.
+
+## Dữ liệu bệnh nhân và quyền riêng tư
+
+Lịch sử ca khám được lưu ở `data/history.db` trên máy chạy app, chưa mã hoá và chưa có đăng nhập. Chỉ dùng dữ liệu mô phỏng hoặc dữ liệu đã ẩn danh. **Không đưa `data/` lên GitHub**: thêm dòng `data/` vào `.gitignore`.
 
 ## Kiểm thử
-
-Sau khi cài thư viện:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest -v test_core.py
 ```
 
-Kiểm thử xác nhận dữ liệu thật có 569 mẫu, 30 đặc trưng, phân bố 357 B/212 M; loại đúng cột trống và không dùng `id`/`diagnosis` làm đặc trưng; phép chia tái lập; tổng ma trận nhầm lẫn và bảng dự đoán khớp số mẫu test.
+`test_core.py` kiểm tra phần dữ liệu và mô hình: dữ liệu thật có 569 mẫu, 30 đặc trưng, phân bố 357 B/212 M; loại đúng cột trống; không dùng `id`/`diagnosis` làm đặc trưng; phép chia tái lập; tổng ma trận nhầm lẫn và bảng dự đoán khớp số mẫu test. Tầng giao diện (`app.py`, `doctor.py`, `charts.py`) chưa có kiểm thử tự động.
 
 ## Cấu trúc mã nguồn
 
-- `data_loader.py`: đọc ZIP/CSV, kiểm tra và chuẩn bị dữ liệu.
-- `model.py`: chia dữ liệu, Pipeline, GridSearchCV, đánh giá và láng giềng.
-- `plots.py`: tạo biểu đồ dùng cho giao diện và xuất PNG.
-- `ui.py`: giao diện Tkinter ba tab và tác vụ nền.
-- `main.py`: điểm khởi động.
-- `test_core.py`: kiểm thử phần dữ liệu và mô hình.
-- `run_app.bat`: mở ứng dụng bằng môi trường `.venv`, giữ cửa sổ lỗi khi khởi động thất bại.
+| Tệp | Vai trò |
+|---|---|
+| `app.py` | Giao diện Streamlit, điều hướng 5 trang |
+| `doctor.py` | Dự đoán ca mới và hàng loạt, mức đồng thuận, lịch sử SQLite |
+| `charts.py` | Chỉ số đánh giá và biểu đồ Plotly |
+| `glossary.py` | Giải thích tiếng Việt cho chỉ số và thuật ngữ |
+| `data_loader.py` | Đọc ZIP/CSV, kiểm tra và chuẩn bị dữ liệu |
+| `model.py` | Chia dữ liệu, Pipeline, GridSearchCV, đánh giá |
+| `plots.py` | Biểu đồ matplotlib (phân bố lớp, kết quả CV) |
+| `test_core.py` | Kiểm thử dữ liệu và mô hình |
+| `run_app.bat` | Tạo `.venv` lần đầu và mở app (giữ định dạng xuống dòng CRLF) |
+| `main.py`, `ui.py` | Giao diện Tkinter bản đầu, không còn dùng trong app hiện tại |
+
+## Phiên bản đã dùng
+
+Python 3.13.7, streamlit 1.66.1, plotly 7.1.0, pandas 3.1.1, scikit-learn 1.9.1, numpy 2.5.4, matplotlib 3.11.2.
