@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.venv/
+.packages/
+.pytest_cache/
+bao_cao/
